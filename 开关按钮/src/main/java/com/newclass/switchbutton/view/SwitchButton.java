@@ -6,7 +6,6 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.util.AttributeSet;
-import android.util.LruCache;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -18,24 +17,24 @@ public class SwitchButton extends View {
     private Bitmap foreground;
     private Bitmap background;
     private boolean on;
-    private Paint paint;
-    private float x1;
-    private float x2;
-    private float offset;
+    private float currentX;
+    private float maxX;
+    private float minX;
+    private float foreLeft;
+    private int forewidth;
+    private int backwidth;
+
 
     public SwitchButton(Context context) {
         super(context);
-        paint = new Paint();
     }
 
     public SwitchButton(Context context, AttributeSet attrs) {
         super(context, attrs);
-        paint = new Paint();
     }
 
     public SwitchButton(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        paint = new Paint();
     }
 
     public void setForegroundResource(int resourceId) {
@@ -52,75 +51,51 @@ public class SwitchButton extends View {
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        setMeasuredDimension(background.getWidth(), background.getHeight());
+        forewidth = foreground.getWidth();
+        backwidth = background.getWidth();
+
+        minX = 0;
+        maxX = backwidth - forewidth;
+        setMeasuredDimension(backwidth, backwidth);
         //  super.onMeasure(widthMeasureSpec, heightMeasureSpec);
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
 
+//当在画布上画图像的时候可以不用画笔
+        canvas.drawBitmap(background, 0, 0, null);//画背景
 
-        canvas.drawBitmap(background, 0, 0, paint);
-        if (this.on) {
-            canvas.drawBitmap(foreground, 0, 0, paint);
-        } else {
-            canvas.drawBitmap(foreground, offset, 0, paint);
+        foreLeft = currentX - (foreground.getWidth() / 2);//计算前景左边坐标
+        if (foreLeft < minX) {
+            foreLeft = minX;
+            this.on = false;
         }
 
-        super.onDraw(canvas);
+        if (foreLeft > maxX) {
+            foreLeft = maxX;
+            this.on = true;
+        }
+        canvas.drawBitmap(foreground, foreLeft, 0, null);
+
+        System.out.println("this.on=" + this.on);
     }
 
 
     @Override
-    public boolean onTouchEvent(MotionEvent event) {
+    public boolean onTouchEvent(MotionEvent event)  {
 
-        //   Volley k=new Volley();
+        //getX(),相对于控件本身左上角,getRawX,相对于屏幕左上角,无论是否有标题栏,ActionBar
+        currentX = event.getX();
 
         switch (event.getAction()) {
-            case MotionEvent.ACTION_DOWN:
-                //getX(),相对于控件本身左上角,getRawX,相对于屏幕左上角,无论是否有标题栏,ActionBar
-                System.out.println("getY()=" + event.getY() + " getRawY()=" + event.getRawY());
-
-                x1 = event.getX();
-
-                break;
-            case MotionEvent.ACTION_MOVE:
-
-                x2 = event.getX();
-
-                offset = x2 - x1;
-                invalidate();
-                break;
             case MotionEvent.ACTION_UP:
-
-                this.on = !this.on;
-                invalidate();
+                currentX = currentX > backwidth / 2 ? backwidth / 2 + forewidth / 2 : backwidth / 2 - forewidth / 2;
                 break;
         }
-
-
+        invalidate();
         return true;
     }
 
-    private class BitmapCache {
-        private LruCache<String, Bitmap> cache;
 
-        public BitmapCache() {
-            cache = new LruCache<String, Bitmap>(1) {
-                @Override
-                protected int sizeOf(String key, Bitmap value) {
-                    return value.getRowBytes() * value.getHeight();
-                }
-            };
-        }
-
-        public Bitmap get(String key) {
-            return cache.get(key);
-        }
-
-
-        public void put(String key, Bitmap value) {
-            cache.put(key, value);
-        }
-    }
 }
