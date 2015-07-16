@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/CustomView.iml" filepath="$PROJECT_DIR$/CustomView.iml" />
+      <module fileurl="file://$PROJECT_DIR$/优酷菜单/优酷菜单.iml" filepath="$PROJECT_DIR$/优酷菜单/优酷菜单.iml" />
       <module fileurl="file://$PROJECT_DIR$/开关按钮/开关按钮.iml" filepath="$PROJECT_DIR$/开关按钮/开关按钮.iml" />
     </modules>
   </component>

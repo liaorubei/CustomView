@@ -10,6 +10,7 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
+            <option value="$PROJECT_DIR$/优酷菜单" />
             <option value="$PROJECT_DIR$/开关按钮" />
           </set>
         </option>
