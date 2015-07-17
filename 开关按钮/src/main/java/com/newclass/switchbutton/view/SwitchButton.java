@@ -11,6 +11,11 @@ import android.view.View;
 
 /**
  * Created by liaorubei on 2015/7/15.
+ * 要求有以下功能
+ * 1.在XML文件定义功能
+ * 2.使用自定义属性功能
+ * 3.直接设置和取得当前状态的功能
+ * 4.当状态发生改变时能够回调的功能
  */
 public class SwitchButton extends View {
 
@@ -21,8 +26,6 @@ public class SwitchButton extends View {
     private float maxX;
     private float minX;
     private float foreLeft;
-    private int forewidth;
-    private int backwidth;
 
 
     public SwitchButton(Context context) {
@@ -51,50 +54,67 @@ public class SwitchButton extends View {
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        forewidth = foreground.getWidth();
-        backwidth = background.getWidth();
-
         minX = 0;
-        maxX = backwidth - forewidth;
-        setMeasuredDimension(backwidth, backwidth);
-        //  super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+        maxX = background.getWidth() - foreground.getWidth();
+        setMeasuredDimension(background.getWidth(), foreground.getWidth());
+    }
+
+    @Override
+    protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
+        super.onLayout(changed, left, top, right, bottom);
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
-
-//当在画布上画图像的时候可以不用画笔
+        //当在画布上画图像的时候可以不用画笔
         canvas.drawBitmap(background, 0, 0, null);//画背景
-
-        foreLeft = currentX - (foreground.getWidth() / 2);//计算前景左边坐标
-        if (foreLeft < minX) {
-            foreLeft = minX;
-            this.on = false;
-        }
-
-        if (foreLeft > maxX) {
-            foreLeft = maxX;
-            this.on = true;
-        }
-        canvas.drawBitmap(foreground, foreLeft, 0, null);
-
-        System.out.println("this.on=" + this.on);
+        canvas.drawBitmap(foreground, foreLeft, 0, null);//画按钮
     }
 
-
     @Override
-    public boolean onTouchEvent(MotionEvent event)  {
+    public boolean onTouchEvent(MotionEvent event) {
 
         //getX(),相对于控件本身左上角,getRawX,相对于屏幕左上角,无论是否有标题栏,ActionBar
         currentX = event.getX();
-
         switch (event.getAction()) {
+            case MotionEvent.ACTION_DOWN:
+            case MotionEvent.ACTION_MOVE:
+                foreLeft = calcForeLeft(currentX);
+                break;
             case MotionEvent.ACTION_UP:
-                currentX = currentX > backwidth / 2 ? backwidth / 2 + forewidth / 2 : backwidth / 2 - forewidth / 2;
+                foreLeft = currentX > background.getWidth() / 2 ? maxX : minX;
+
+                boolean temp = foreLeft == maxX;
+
+                if (this.on != temp) {
+                    this.on = temp;
+                    if (mOnStateChangeListener != null) {
+                        mOnStateChangeListener.currentState(this.on);
+                    }
+                }
                 break;
         }
+
+
         invalidate();
         return true;
+    }
+
+    private float calcForeLeft(float currentX) {
+        float temp = currentX - (foreground.getWidth() / 2);
+        temp = temp < minX ? minX : temp;
+        temp = temp > maxX ? maxX : temp;
+        return temp;
+    }
+
+    private OnStateChangeListener mOnStateChangeListener;
+
+    public void setOnStateChangeListener(OnStateChangeListener listener) {
+        this.mOnStateChangeListener = listener;
+    }
+
+    public interface OnStateChangeListener {
+        void currentState(boolean state);
     }
 
 

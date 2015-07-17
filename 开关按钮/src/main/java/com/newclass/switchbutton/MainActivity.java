@@ -19,5 +19,12 @@ public class MainActivity extends ActionBarActivity {
         sb_state.setForegroundResource(R.mipmap.foreground);
         sb_state.setBackgroundResource(R.mipmap.background);
         sb_state.setState(true);
+        sb_state.setOnStateChangeListener(new SwitchButton.OnStateChangeListener() {
+            @Override
+            public void currentState(boolean state) {
+
+                System.out.println("当前状态是:" + state);
+            }
+        });
     }
 }
